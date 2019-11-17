@@ -1,0 +1,8 @@
+<?php
+
+declare(strict_types=1);
+
+return array(
+    'url' => 'https://api.vk.com/method/',
+    'token' => 'b42f51ec3cfabd5ba7f0330defc74f4dc0101651fdab4937d80892l39420424b29dea0a40ea089aba20cde2'
+);
