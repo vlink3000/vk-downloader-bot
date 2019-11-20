@@ -13,6 +13,7 @@ class GetPhotos implements StrategyInterface {
 
     public function prepareResponse(string $request)
     {
+        //prepare payload
         $payload = [
             'method' => 'users.search',
             'fields' => [
@@ -21,50 +22,75 @@ class GetPhotos implements StrategyInterface {
                 'sex' => '1', //female
                 'age_from' => '18',
                 'age_to' => '35',
-                'city' => '11', //volgograd
+                'city' => '99', //volgograd
                 'sort' => '0', //0 - by popularity, 1 - reg date
                 'count' => '100',
             ]
         ];
-
+        
+        //send curl request and get list of users
         $call = new CallVkApi();
         $response = $call->sendPostRequest($payload);
 
-        $ids = [];
-        $usersArr = json_decode(json_encode($response->response->items), True);
+        //users with fields
+        if(isset($response) && !is_null($response)) {
+            $usersArr = json_decode(json_encode($response->response->items), True);
+        } else {
+            $response = $call->sendPostRequest($payload);
+            $usersArr = json_decode(json_encode($response->response->items), True);
+        }
 
+        $idsArr = [];
+        //get only id field from each user in foreach
+        foreach ($usersArr as $key => $user) {
+                $idsArr[] = $user['id'];
+        }
+
+        //get all user photos for each user
         $userPhotos = new GetUserPhotos();
-        //get users ids
-        foreach ($usersArr as $user) {
-            array_push($ids, $user['id']);
-        }
 
+        //photos folder name
         $i = 0;
-        foreach ($ids as $id) {
-            $i++;
+
+        //clear urls tmp list
+//        unlink('tmp.txt');
+
+        //array of final photos in height quality
+        $photosArrsArr = [];
+
+        foreach ($idsArr as $key => $id) {
+            //prepare payload for each user
             $payload = $userPhotos->prepareResponse((string)$id);
-            $photos = $call->sendPostRequest($payload);
-            $photosArr = json_decode(json_encode($photos), True);
+            //get all user photos
+            $userPhotosArr = json_decode(json_encode($call->sendPostRequest($payload)), True);
 
-            if (!file_exists('photos/' . $i)) {
-                mkdir('photos/' . $i, 0777, true);
+            if(isset($userPhotosArr['response']['items']) && !is_null($userPhotosArr['response']['items'])) {
+                $finalPhotosArr = [];
+                foreach ($userPhotosArr['response']['items'] as $key => $photos) {
+                    if (isset($photos['sizes']['6'])) {
+                        $finalPhotosArr[] = $photos['sizes'][6]['url'];
+                        $data = $photos['sizes'][6]['url'] . PHP_EOL;
+                        $fp = fopen('tmp.txt', 'a');
+                        fwrite($fp, $data);
+                    } else if (isset($photos['sizes']['4'])) {
+                        $finalPhotosArr[] = $photos['sizes'][4]['url'];
+                        $data = $photos['sizes'][4]['url'] . PHP_EOL;
+                        $fp = fopen('tmp.txt', 'a');
+                        fwrite($fp, $data);
+                    } else if (isset($photos['sizes']['3'])) {
+                        $finalPhotosArr[] = $photos['sizes'][3]['url'];
+                        $data = $photos['sizes'][3]['url'] . PHP_EOL;
+                        $fp = fopen('tmp.txt', 'a');
+                        fwrite($fp, $data);
+                    }
+                }
             }
-
-            foreach ($photosArr['response']['items'] as $photo) {
-                $useragent = "Opera/9.80 (J2ME/MIDP; Opera Mini/4.2.14912/870; U; id) Presto/2.4.15";
-                $ch = curl_init ("");
-                curl_setopt ($ch, CURLOPT_URL, $photo['sizes'][8]['url']);
-                curl_setopt ($ch, CURLOPT_USERAGENT, $useragent); // set user agent
-                curl_setopt ($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
-                $curl = curl_exec ($ch);
-                curl_close($ch);
-                $imgName = strtotime("now");
-                file_put_contents('photos/' . $i . '/' . $imgName . '.png', $curl);
-            }
+            //add array of photos to main array
+            array_push($photosArrsArr, $finalPhotosArr);
         }
 
-        unlink('photos.zip');
+        print(json_encode($photosArrsArr));die();
+
 
         function removeDirectory($path) {
             $files = glob($path . '/*');

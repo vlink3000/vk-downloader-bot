@@ -5,7 +5,6 @@ declare(strict_types=1);
 require_once ('autoload.php');
 
 use App\Factory\StrategyFactory;
-use App\Http\CallVkApi;
 
 $file = 'stat.txt';
 $stat = file_get_contents ($file);
@@ -15,6 +14,7 @@ file_put_contents($file, $newRequest);
 $fn = fopen("stat.txt","r");
 $result = fgets($fn);
 fclose($fn);
+
 
 $request = "/photos";
 
