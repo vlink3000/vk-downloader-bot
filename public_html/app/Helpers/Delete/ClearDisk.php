@@ -9,6 +9,13 @@ class ClearDisk {
     public function rmPhotos(string $path): bool
     {
 
+        $files = glob($path . '/*');
+        foreach ($files as $file) {
+            is_dir($file) ? removeDirectory($file) : unlink($file);
+        }
+        rmdir($path);
+
+        return true;
     }
 
     public function rmArchive()

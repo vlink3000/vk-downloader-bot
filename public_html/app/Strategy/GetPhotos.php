@@ -24,7 +24,7 @@ class GetPhotos implements StrategyInterface {
                 'age_to' => '35',
                 'city' => '99', //volgograd
                 'sort' => '0', //0 - by popularity, 1 - reg date
-                'count' => '100',
+                'count' => '5',
             ]
         ];
         
@@ -64,76 +64,35 @@ class GetPhotos implements StrategyInterface {
             //get all user photos
             $userPhotosArr = json_decode(json_encode($call->sendPostRequest($payload)), True);
 
-            if(isset($userPhotosArr['response']['items']) && !is_null($userPhotosArr['response']['items'])) {
+            if (isset($userPhotosArr['response']['items']) && !is_null($userPhotosArr['response']['items'])) {
                 $finalPhotosArr = [];
                 foreach ($userPhotosArr['response']['items'] as $key => $photos) {
                     if (isset($photos['sizes']['6'])) {
                         $finalPhotosArr[] = $photos['sizes'][6]['url'];
-                        $data = $photos['sizes'][6]['url'] . PHP_EOL;
-                        $fp = fopen('tmp.txt', 'a');
-                        fwrite($fp, $data);
-                    } else if (isset($photos['sizes']['4'])) {
-                        $finalPhotosArr[] = $photos['sizes'][4]['url'];
-                        $data = $photos['sizes'][4]['url'] . PHP_EOL;
-                        $fp = fopen('tmp.txt', 'a');
-                        fwrite($fp, $data);
-                    } else if (isset($photos['sizes']['3'])) {
-                        $finalPhotosArr[] = $photos['sizes'][3]['url'];
-                        $data = $photos['sizes'][3]['url'] . PHP_EOL;
-                        $fp = fopen('tmp.txt', 'a');
-                        fwrite($fp, $data);
                     }
                 }
-            }
-            //add array of photos to main array
-            array_push($photosArrsArr, $finalPhotosArr);
-        }
-
-        print(json_encode($photosArrsArr));die();
-
-
-        function removeDirectory($path) {
-            $files = glob($path . '/*');
-            foreach ($files as $file) {
-                is_dir($file) ? removeDirectory($file) : unlink($file);
-            }
-            rmdir($path);
-            return;
-        }
-
-        removeDirectory('photos');
-
-        // Get real path for our folder
-        echo $rootPath = realpath('photos');
-
-        // Initialize archive object
-        $zip = new ZipArchive();
-        $zip->open('photos.zip', ZipArchive::CREATE | ZipArchive::OVERWRITE );
-
-        // Create recursive directory iterator
-        /** @var SplFileInfo[] $files */
-        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($rootPath), RecursiveIteratorIterator::LEAVES_ONLY);
-
-        foreach ($files as $name => $file)
-        {
-            // Skip directories (they would be added automatically)
-            if (!$file->isDir())
-            {
-                // Get real and relative path for current file
-                $filePath = $file->getRealPath();
-                $relativePath = substr($filePath, strlen($rootPath) + 1);
-
-                // Add current file to archive
-                $zip->addFile($filePath, $relativePath);
+                //add array of photos to main array
+                array_push($photosArrsArr, $finalPhotosArr);
             }
         }
 
-        // Zip archive will be created only after closing object
-        $zip->close();
+        $folder = 0;
 
-        echo("<script>location.href = 'https://vk-parser.000webhostapp.com/photos.zip';</script>");
+        foreach ($photosArrsArr as $item) {
 
+            //create dir for each photos set
+            mkdir("photos/".$folder);
+            foreach ($item as $url) {
+//                $image = file_get_contents($url);
+//
+//                $fileName = strtotime("now");
+//                file_put_contents('photos/' . $folder . '/' . $fileName . '.jpg', $image);
+                echo json_encode($url);
+                echo "\n";
+            }
+
+            $folder++;
+        }
         die();
-
     }
 }
