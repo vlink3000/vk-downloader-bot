@@ -7,7 +7,7 @@ namespace App\Strategy;
 class GetCities implements StrategyInterface {
 
     public function prepareResponse(string $request)
-    {
+    {   //only big cities
         return [
             'method' => 'database.getCities',
             'fields' => [

@@ -23,8 +23,7 @@ class CallVkApi
         }
 
         $response = file_get_contents($url);
-        $responseArr = json_decode($response);
 
-        return $responseArr;
+        return json_decode($response);
     }
 }

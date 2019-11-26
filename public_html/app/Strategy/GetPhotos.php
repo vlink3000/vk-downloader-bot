@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace App\Strategy;
 
 use App\Http\CallVkApi;
-use ZipArchive;
-use RecursiveIteratorIterator;
-use RecursiveDirectoryIterator;
 
 class GetPhotos implements StrategyInterface {
 
@@ -22,9 +19,9 @@ class GetPhotos implements StrategyInterface {
                 'sex' => '1', //female
                 'age_from' => '18',
                 'age_to' => '35',
-                'city' => '99', //volgograd
+                'city' => '1', //volgograd
                 'sort' => '0', //0 - by popularity, 1 - reg date
-                'count' => '5',
+                'count' => '300',
             ]
         ];
         
@@ -49,12 +46,6 @@ class GetPhotos implements StrategyInterface {
         //get all user photos for each user
         $userPhotos = new GetUserPhotos();
 
-        //photos folder name
-        $i = 0;
-
-        //clear urls tmp list
-//        unlink('tmp.txt');
-
         //array of final photos in height quality
         $photosArrsArr = [];
 
@@ -76,23 +67,41 @@ class GetPhotos implements StrategyInterface {
             }
         }
 
-        $folder = 0;
+        print_r(json_encode($photosArrsArr));die();
+
+        //clear folder index
+        $i = 0;
+        $imageIndex = 0;
+
+        $this->deletePhotos("photos");
+        mkdir("photos/");
 
         foreach ($photosArrsArr as $item) {
 
             //create dir for each photos set
-            mkdir("photos/".$folder);
+            mkdir("photos/" . $i);
             foreach ($item as $url) {
-//                $image = file_get_contents($url);
-//
-//                $fileName = strtotime("now");
-//                file_put_contents('photos/' . $folder . '/' . $fileName . '.jpg', $image);
-                echo json_encode($url);
-                echo "\n";
+                $image = file_get_contents($url);
+                file_put_contents('photos/' . $i . '/' . $imageIndex++ . '.jpg', $image);
             }
-
-            $folder++;
+            $imageIndex = 0;
+            $i++;
         }
+
+        $url = "http://" . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'] . 'photos.zip';
+
+        echo "<a href='$url' target='_blank'>$url</a>";
+
         die();
+
+    }
+
+    private function deletePhotos ($dir)
+    {
+        $files = array_diff(scandir($dir), array('.','..'));
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? $this->deletePhotos("$dir/$file") : unlink("$dir/$file");
+        }
+        return rmdir($dir);
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once ('autoload.php');
+require_once('autoload.php');
 
 use App\Factory\StrategyFactory;
 
@@ -15,6 +15,8 @@ $fn = fopen("stat.txt","r");
 $result = fgets($fn);
 fclose($fn);
 
+ini_set('memory_limit', '2048M');
+ini_set('max_execution_time', '99999');
 
 $request = "/photos";
 
