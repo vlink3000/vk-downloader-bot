@@ -10,38 +10,38 @@ class GetPhotos implements StrategyInterface {
 
     public function prepareResponse(string $request)
     {
-        //prepare payload
-        $payload = [
-            'method' => 'users.search',
-            'fields' => [
-                'v' => '5.89',
-                'has_photo' => '1', //true
-                'sex' => '1', //female
-                'age_from' => '18',
-                'age_to' => '35',
-                'city' => '1', //volgograd
-                'sort' => '0', //0 - by popularity, 1 - reg date
-                'count' => '300',
-            ]
-        ];
-        
-        //send curl request and get list of users
-        $call = new CallVkApi();
-        $response = $call->sendPostRequest($payload);
+            //prepare payload
+            $payload = [
+                'method' => 'users.search',
+                'fields' => [
+                    'v' => '5.89',
+                    'has_photo' => '1', //true
+                    'sex' => '1', //female
+                    'age_from' => '18',
+                    'age_to' => '35',
+                    'city' => '8', //1,2,5,6,8
+                    'sort' => '0', //0 - by popularity, 1 - reg date
+                    'count' => '110',
+                ]
+            ];
 
-        //users with fields
-        if(isset($response) && !is_null($response)) {
-            $usersArr = json_decode(json_encode($response->response->items), True);
-        } else {
+            //send curl request and get list of users
+            $call = new CallVkApi();
             $response = $call->sendPostRequest($payload);
-            $usersArr = json_decode(json_encode($response->response->items), True);
-        }
 
-        $idsArr = [];
-        //get only id field from each user in foreach
-        foreach ($usersArr as $key => $user) {
+            //users with fields
+            if(isset($response) && !is_null($response)) {
+                $usersArr = json_decode(json_encode($response->response->items), True);
+            } else {
+                $response = $call->sendPostRequest($payload);
+                $usersArr = json_decode(json_encode($response->response->items), True);
+            }
+
+            $idsArr = [];
+            //get only id field from each user in foreach
+            foreach ($usersArr as $key => $user) {
                 $idsArr[] = $user['id'];
-        }
+            }
 
         //get all user photos for each user
         $userPhotos = new GetUserPhotos();
@@ -67,14 +67,12 @@ class GetPhotos implements StrategyInterface {
             }
         }
 
-        print_r(json_encode($photosArrsArr));die();
-
         //clear folder index
         $i = 0;
         $imageIndex = 0;
 
-        $this->deletePhotos("photos");
-        mkdir("photos/");
+//        $this->deletePhotos("photos");
+//        mkdir("photos/");
 
         foreach ($photosArrsArr as $item) {
 
